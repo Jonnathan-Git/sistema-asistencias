@@ -10,7 +10,7 @@
     "setup": "npm run build && node dist/setup.js",
     "setup-db": "npm run build && node dist/setup-db.js",
     "vercel-build": "npm run build",
-    "render-build": "npm run build && npm run setup-db"
+    "render-build": "npm install && npm run build && npm run setup-db"
   },
   "dependencies": {
     "cors": "^2.8.5",
