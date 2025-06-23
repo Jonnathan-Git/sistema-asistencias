@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Grupos - Sistema de Asistencias</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+        }
+
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .group-row:hover {
+            background-color: #f8f9fa;
+        }
+
+        .btn-group .btn {
+            margin: 0 1px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-calendar-check"></i>
+                Sistema de Asistencias
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/asistencias.html">
+                            <i class="bi bi-clipboard-check"></i>
+                            Control de Asistencias
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/grupos.html">
+                            <i class="bi bi-people"></i>
+                            Grupos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/estudiantes.html">
+                            <i class="bi bi-person"></i>
+                            Estudiantes
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="card-title mb-0">
+                            <i class="bi bi-people"></i>
+                            Gestión de Grupos
+                        </h3>
+                        <button class="btn btn-success" onclick="showCreateForm()">
+                            <i class="bi bi-plus-circle"></i>
+                            Nuevo Grupo
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <!-- Tabla de grupos -->
+                        <div id="groupsTable">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                                <p class="mt-3">Cargando grupos...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar grupo -->
+    <div class="modal fade" id="groupModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">
+                        <i class="bi bi-plus-circle"></i>
+                        Crear Nuevo Grupo
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="groupForm">
+                        <input type="hidden" id="groupId">
+                        <div class="mb-3">
+                            <label for="groupName" class="form-label">
+                                <i class="bi bi-people"></i>
+                                Nombre del Grupo
+                            </label>
+                            <input type="text" class="form-control" id="groupName"
+                                placeholder="Ej: Primero A, Segundo B, etc." required>
+                            <div class="form-text">
+                                Ingresa un nombre descriptivo para el grupo
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="groupIdentifier" class="form-label">
+                                <i class="bi bi-tag"></i>
+                                Identificador Único
+                            </label>
+                            <input type="text" class="form-control" id="groupIdentifier"
+                                placeholder="Ej: 1A, 2B, 3C, etc." required>
+                            <div class="form-text">
+                                Identificador único que no se puede repetir (máximo 10 caracteres)
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i>
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="saveGroup()">
+                        <i class="bi bi-check-circle"></i>
+                        Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para ver detalles del grupo -->
+    <div class="modal fade" id="groupDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailsModalTitle">
+                        <i class="bi bi-people-fill"></i>
+                        Detalles del Grupo
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="groupDetailsContent">
+                    <!-- Contenido dinámico -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i>
+                        Cerrar
+                    </button>
+                    <a href="#" class="btn btn-success" id="viewAttendancesBtn">
+                        <i class="bi bi-clipboard-check"></i>
+                        Ver Asistencias
+                    </a>
+                    <button type="button" class="btn btn-primary" id="editGroupBtn">
+                        <i class="bi bi-pencil"></i>
+                        Editar Grupo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/main.js"></script>
+    <script>
+        let groups = [];
+        let students = [];
+        let selectedGroup = null;
+        let selectedDate = new Date().toISOString().split('T')[0];
+        let attendanceData = {};
+        let paginationData = null;
+        let groupModal;
+        let groupDetailsModal;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function () {
+            groupModal = new bootstrap.Modal(document.getElementById('groupModal'));
+            groupDetailsModal = new bootstrap.Modal(document.getElementById('groupDetailsModal'));
+            await loadGroups();
+        });
+
+        // Load groups
+        async function loadGroups(page = 1) {
+            try {
+                const result = await loadData('grupos', { page: page, limit: currentLimit });
+                groups = result.grupos;
+                paginationData = result.pagination;
+                renderGroupsTable();
+            } catch (error) {
+                console.error('Error loading groups:', error);
+                document.getElementById('groupsTable').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Error al cargar los grupos
+                    </div>
+                `;
+            }
+        }
+
+        // Render groups table
+        function renderGroupsTable() {
+            const tableContainer = document.getElementById('groupsTable');
+
+            if (groups.length === 0) {
+                tableContainer.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-people display-1 text-muted"></i>
+                        <h4 class="text-muted mt-3">No hay grupos registrados</h4>
+                        <p class="text-muted">Comienza agregando un nuevo grupo</p>
+                        <button class="btn btn-primary" onclick="showCreateForm()">
+                            <i class="bi bi-plus-circle"></i>
+                            Agregar Grupo
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            let tableHTML = `
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Identificador</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            groups.forEach(group => {
+                tableHTML += `
+                    <tr class="group-row">
+                        <td>${group.id}</td>
+                        <td>
+                            <i class="bi bi-people-fill"></i>
+                            ${group.nombre}
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">
+                                ${group.identificador}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-info" onclick="viewGroupDetails(${group.id})" title="Ver Detalles">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editGroup(${group.id})" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <a href="/asistencias.html?grupoId=${group.id}" class="btn btn-sm btn-outline-success" title="Ver Asistencias">
+                                    <i class="bi bi-clipboard-check"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteGroup(${group.id})" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            // Add pagination info
+            if (paginationData) {
+                tableHTML += `
+                    <div id="paginationInfo" class="mt-3">
+                        <!-- Pagination info will be inserted here -->
+                    </div>
+                    <div id="paginationControls" class="mt-3">
+                        <!-- Pagination controls will be inserted here -->
+                    </div>
+                `;
+            }
+
+            tableContainer.innerHTML = tableHTML;
+
+            // Add pagination controls and info
+            if (paginationData) {
+                updatePaginationInfo(paginationData, 'paginationInfo');
+                document.getElementById('paginationControls').innerHTML = createPaginationControls(paginationData, onPageChange);
+            }
+
+            // Add create button
+            const createButtonHTML = `
+                <div class="d-flex justify-content-end mt-3">
+                    <button class="btn btn-success" onclick="showCreateForm()">
+                        <i class="bi bi-plus-circle"></i>
+                        Agregar Grupo
+                    </button>
+                </div>
+            `;
+            tableContainer.insertAdjacentHTML('beforeend', createButtonHTML);
+        }
+
+        // Page change handler
+        function onPageChange(page) {
+            loadGroups(page);
+        }
+
+        // Change page size
+        function changePageSize(newLimit) {
+            currentLimit = parseInt(newLimit);
+            currentPage = 1;
+            loadGroups(1);
+        }
+
+        // Show create form
+        function showCreateForm() {
+            document.getElementById('modalTitle').innerHTML = '<i class="bi bi-plus-circle"></i> Crear Nuevo Grupo';
+            document.getElementById('groupForm').reset();
+            document.getElementById('groupId').value = '';
+            groupModal.show();
+        }
+
+        // Edit group
+        async function editGroup(id) {
+            try {
+                const group = await apiRequest(`/api/grupos/${id}`);
+                document.getElementById('modalTitle').innerHTML = '<i class="bi bi-pencil-square"></i> Editar Grupo';
+                document.getElementById('groupId').value = group.id;
+                document.getElementById('groupName').value = group.nombre;
+                document.getElementById('groupIdentifier').value = group.identificador;
+                groupModal.show();
+            } catch (error) {
+                console.error('Error loading group:', error);
+                showNotification('Error al cargar el grupo', 'error');
+            }
+        }
+
+        // Save group
+        async function saveGroup() {
+            const form = document.getElementById('groupForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const groupData = {
+                nombre: document.getElementById('groupName').value,
+                identificador: document.getElementById('groupIdentifier').value
+            };
+
+            const groupId = document.getElementById('groupId').value;
+
+            try {
+                if (groupId) {
+                    // Update existing group
+                    await apiRequest(`/api/grupos/${groupId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(groupData)
+                    });
+                    showNotification('Grupo actualizado correctamente', 'success');
+                } else {
+                    // Create new group
+                    await apiRequest('/api/grupos', {
+                        method: 'POST',
+                        body: JSON.stringify(groupData)
+                    });
+                    showNotification('Grupo creado correctamente', 'success');
+                }
+
+                groupModal.hide();
+                await loadGroups();
+            } catch (error) {
+                console.error('Error saving group:', error);
+                showNotification('Error al guardar el grupo', 'error');
+            }
+        }
+
+        // Delete group
+        async function deleteGroup(id) {
+            const group = groups.find(g => g.id === id);
+            if (!confirmDelete(`¿Estás seguro de que deseas eliminar el grupo ${group.nombre}? Esta acción no se puede deshacer.`)) {
+                return;
+            }
+
+            try {
+                await deleteData('grupos', id);
+                await loadGroups();
+            } catch (error) {
+                console.error('Error deleting group:', error);
+            }
+        }
+
+        // View group details
+        async function viewGroupDetails(id) {
+            try {
+                const group = await apiRequest(`/api/grupos/${id}`);
+                const groupStudents = await apiRequest(`/api/estudiantes/grupo/${id}/todos`);
+
+                document.getElementById('detailsModalTitle').innerHTML = `<i class="bi bi-people-fill"></i> Grupo: ${group.nombre}`;
+
+                let detailsHTML = `
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="bi bi-info-circle"></i>
+                                        Información del Grupo
+                                    </h5>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <strong>ID:</strong>
+                                            <p class="text-muted">${group.id}</p>
+                                        </div>
+                                        <div class="col-6">
+                                            <strong>Identificador:</strong>
+                                            <p class="text-muted">${group.identificador}</p>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <strong>Nombre:</strong>
+                                            <p class="text-muted">${group.nombre}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="bi bi-graph-up"></i>
+                                        Estadísticas
+                                    </h5>
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <div class="border-end">
+                                                <h3 class="text-primary">${groupStudents.length}</h3>
+                                                <p class="text-muted mb-0">Estudiantes</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <h3 class="text-success">
+                                                <i class="bi bi-check-circle"></i>
+                                            </h3>
+                                            <p class="text-muted mb-0">Activo</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                if (groupStudents.length === 0) {
+                    detailsHTML += `
+                        <div class="text-center py-4">
+                            <i class="bi bi-person display-4 text-muted"></i>
+                            <h5 class="text-muted mt-3">No hay estudiantes en este grupo</h5>
+                            <p class="text-muted">Agrega estudiantes para comenzar a registrar asistencias</p>
+                            <a href="/estudiantes.html?action=create&grupoId=${group.id}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i>
+                                Agregar Primer Estudiante
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    detailsHTML += `
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-person-lines-fill"></i>
+                                    Estudiantes del Grupo
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Nombre</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                    `;
+
+                    groupStudents.forEach(student => {
+                        detailsHTML += `
+                            <tr>
+                                <td>${student.id}</td>
+                                <td>
+                                    <i class="bi bi-person-circle"></i>
+                                    ${student.nombre}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="/estudiantes.html?action=edit&id=${student.id}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="/asistencias.html?grupoId=${group.id}&estudianteId=${student.id}" class="btn btn-sm btn-outline-success" title="Ver Asistencias">
+                                            <i class="bi bi-clipboard-check"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+
+                    detailsHTML += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                document.getElementById('groupDetailsContent').innerHTML = detailsHTML;
+                document.getElementById('viewAttendancesBtn').href = `/asistencias.html?grupoId=${group.id}`;
+                document.getElementById('editGroupBtn').onclick = () => {
+                    groupDetailsModal.hide();
+                    editGroup(group.id);
+                };
+
+                groupDetailsModal.show();
+            } catch (error) {
+                console.error('Error loading group details:', error);
+                showNotification('Error al cargar los detalles del grupo', 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>
